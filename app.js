@@ -5,11 +5,13 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const ejs = require('ejs');
 const mongoose = require('mongoose');
-const encrypt = require('mongoose-encryption');
+// const encrypt = require('mongoose-encryption');
+const md5 = require('md5');
 
 const app = express();
 
-console.log(process.env.SECRET_KEY);
+// console.log(process.env.SECRET_KEY);
+console.log(md5('123456'));
 
 //MIDDLEWARE
 app.use(express.static('public'));
@@ -26,10 +28,10 @@ const userSchema = new mongoose.Schema({
   password: String
 });
 
-userSchema.plugin(encrypt, {
-  secret: process.env.SECRET_KEY,
-  encryptedFields: ['password']
-});
+// userSchema.plugin(encrypt, {
+//   secret: process.env.SECRET_KEY,
+//   encryptedFields: ['password']
+// });
 
 const User = new mongoose.model('User', userSchema);
 
@@ -49,7 +51,7 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {
   const newUser = new User({
     email: req.body.username,
-    password: req.body.password
+    password: md5(req.body.password)
   });
 
   // Mongoose will encrypt the password when saving it to the database on saving.
@@ -64,7 +66,7 @@ app.post('/register', (req, res) => {
 
 app.post('/login', (req, res) => {
   const username = req.body.username;
-  const password = req.body.password;
+  const password = md5(req.body.password);
 
   // Mongoose will de-crypt the password on 'find' retrieving it from the database.
   User.findOne({ email: username }, (err, foundUser) => {
